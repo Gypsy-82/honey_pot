@@ -1,0 +1,31 @@
+# compiled binaries
+trackerd
+trackerd_linux_amd64
+trackerd_linux_arm64
+trackerd_darwin_arm64
+
+# database files — contain real attacker data, never commit
+*.db
+*.db-shm
+*.db-wal
+
+# logs and temp output
+*.log
+*.out
+/tmp/
+
+# environment / secrets
+.env
+.env.*
+
+# Go build cache and vendor
+/vendor/
+
+# editor cruft
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# claude code settings — never commit
+.claude/
