@@ -1,12 +1,11 @@
 BINARY   := trackerd
 GOFLAGS  := -ldflags="-s -w" -trimpath
-GOBIN    := $(HOME)/go/bin/go
-GOPATH   := $(HOME)/gopath
-GOROOT   := $(HOME)/go
+GOBIN    := $(shell which go 2>/dev/null || echo $(HOME)/go/bin/go)
 
-# Pull modules directly from source — bypasses proxy.golang.org
-# which is blocked or unreachable on many Kali installs
-GOENV    := GOPATH=$(GOPATH) GOROOT=$(GOROOT) GOPROXY=direct GONOSUMCHECK=* GONOSUMDB=*
+# GOROOT is intentionally NOT set — Go locates its own stdlib automatically.
+# Setting it manually causes "not in std" errors on machines with different Go installs.
+# GOPROXY=direct bypasses proxy.golang.org which is unreachable on many Kali installs.
+GOENV    := GOPROXY=direct GONOSUMCHECK=* GONOSUMDB=*
 
 .PHONY: build build-linux build-arm build-mac clean
 
