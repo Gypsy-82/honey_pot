@@ -4,21 +4,25 @@ GOBIN    := $(HOME)/go/bin/go
 GOPATH   := $(HOME)/gopath
 GOROOT   := $(HOME)/go
 
+# Pull modules directly from source — bypasses proxy.golang.org
+# which is blocked or unreachable on many Kali installs
+GOENV    := GOPATH=$(GOPATH) GOROOT=$(GOROOT) GOPROXY=direct GONOSUMCHECK=* GONOSUMDB=*
+
 .PHONY: build build-linux build-arm build-mac clean
 
 build:
-	GOPATH=$(GOPATH) GOROOT=$(GOROOT) $(GOBIN) build $(GOFLAGS) -o $(BINARY) .
+	$(GOENV) $(GOBIN) build $(GOFLAGS) -o $(BINARY) .
 
 build-linux:
-	GOPATH=$(GOPATH) GOROOT=$(GOROOT) GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
+	$(GOENV) GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
 		$(GOBIN) build $(GOFLAGS) -o $(BINARY)_linux_amd64 .
 
 build-arm:
-	GOPATH=$(GOPATH) GOROOT=$(GOROOT) GOOS=linux GOARCH=arm64 CGO_ENABLED=0 \
+	$(GOENV) GOOS=linux GOARCH=arm64 CGO_ENABLED=0 \
 		$(GOBIN) build $(GOFLAGS) -o $(BINARY)_linux_arm64 .
 
 build-mac:
-	GOPATH=$(GOPATH) GOROOT=$(GOROOT) GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
+	$(GOENV) GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
 		$(GOBIN) build $(GOFLAGS) -o $(BINARY)_darwin_arm64 .
 
 clean:
