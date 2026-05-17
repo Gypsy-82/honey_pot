@@ -18,7 +18,15 @@ die()     { echo -e "${RED}[ FAIL ]${RESET} $*" >&2; exit 1; }
 banner()  { echo -e "${CYAN}${BOLD}$*${RESET}"; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
+# If the script lives in deploy/, project root is one level up.
+# If the script was moved to the repo root, project root is the same directory.
+if [ -f "$SCRIPT_DIR/go.mod" ]; then
+    PROJECT_DIR="$SCRIPT_DIR"          # script is in repo root
+else
+    PROJECT_DIR="$(dirname "$SCRIPT_DIR")"  # script is in deploy/
+fi
+
 BINARY="$PROJECT_DIR/trackerd"
 
 clear
@@ -78,7 +86,10 @@ read -rp "  Choice [1/2/3]: " WEB_CHOICE
 case "$WEB_CHOICE" in
 1)
     command -v nginx &>/dev/null || { info "Installing Nginx..."; sudo apt-get update -qq && sudo apt-get install -y nginx; }
-    sudo cp "$SCRIPT_DIR/nginx/trackerd.conf" /etc/nginx/sites-available/trackerd
+    NGINX_CONF="$SCRIPT_DIR/nginx/trackerd.conf"
+    [ -f "$NGINX_CONF" ] || NGINX_CONF="$SCRIPT_DIR/deploy/nginx/trackerd.conf"
+    [ -f "$NGINX_CONF" ] || die "Cannot find nginx/trackerd.conf — make sure deploy/ folder was cloned."
+    sudo cp "$NGINX_CONF" /etc/nginx/sites-available/trackerd
     [ -f /etc/nginx/sites-enabled/default ] && sudo rm -f /etc/nginx/sites-enabled/default && warn "Removed Nginx default site"
     sudo ln -sf /etc/nginx/sites-available/trackerd /etc/nginx/sites-enabled/trackerd
     sudo nginx -t && sudo systemctl enable nginx && sudo systemctl restart nginx
@@ -89,7 +100,10 @@ case "$WEB_CHOICE" in
     command -v apache2 &>/dev/null || { info "Installing Apache..."; sudo apt-get update -qq && sudo apt-get install -y apache2; }
     sudo a2enmod proxy proxy_http headers remoteip 2>/dev/null || true
     sudo a2dissite 000-default 2>/dev/null || true
-    sudo cp "$SCRIPT_DIR/apache/trackerd.conf" /etc/apache2/sites-available/trackerd.conf
+    APACHE_CONF="$SCRIPT_DIR/apache/trackerd.conf"
+    [ -f "$APACHE_CONF" ] || APACHE_CONF="$SCRIPT_DIR/deploy/apache/trackerd.conf"
+    [ -f "$APACHE_CONF" ] || die "Cannot find apache/trackerd.conf — make sure deploy/ folder was cloned."
+    sudo cp "$APACHE_CONF" /etc/apache2/sites-available/trackerd.conf
     sudo a2ensite trackerd && sudo systemctl enable apache2 && sudo systemctl restart apache2
     success "Apache configured and running on port 80"
     WEB_PORT=80
