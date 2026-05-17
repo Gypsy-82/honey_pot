@@ -67,9 +67,7 @@ success "Go: $("$GOBIN" version | awk '{print $3}')"
 # ── Step 2: build ─────────────────────────────────────────────────────────────
 info "Building trackerd binary..."
 cd "$PROJECT_DIR"
-GOPATH="$HOME/gopath" \
-    GOROOT="$(dirname "$(dirname "$GOBIN")")" \
-    GOPROXY=direct \
+GOPROXY=direct \
     GONOSUMCHECK="*" \
     GONOSUMDB="*" \
     "$GOBIN" build -ldflags="-s -w" -trimpath -o trackerd .
